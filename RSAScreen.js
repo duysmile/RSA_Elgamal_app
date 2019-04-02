@@ -12,6 +12,8 @@ export default class RSAScreen extends React.Component {
       p: null,
       q: null,
       e: null,
+      d: null,
+      input: '',
       plain: '',
       cipher: '',
       publicKey: '',
@@ -22,6 +24,8 @@ export default class RSAScreen extends React.Component {
     this.generateKey = this.generateKey.bind(this);
     this.gcd = this.gcd.bind(this);
     this.powerModulo = this.powerModulo.bind(this);
+    this.encrypt = this.encrypt.bind(this);
+    this.decrypt = this.decrypt.bind(this);
   }
 
   checkIsPrime(num) {
@@ -85,37 +89,66 @@ export default class RSAScreen extends React.Component {
         d = Math.floor(Math.random() * n) + 2;
       } while ((e * d - 1) % EulerN != 0)
       console.log('d = ', d)
-      // bước 5: tìm cipher text
-      let plainTextArr = this.state.plain.split('');
-      console.log(plainTextArr)
-      let cipherText = plainTextArr.reduce((accumulator, currentVal) => {
-        let M = currentVal.charCodeAt(0);
-        let Cipher = this.powerModulo(M, e, n);
-        console.log(M, Cipher, String.fromCharCode(Cipher))
-        // accumulator += String.fromCharCode(Cipher);
-        accumulator += '' + Cipher + ' ';
-        return accumulator;
-      }, '');
-      console.log(cipherText);
+
       this.setState({
+        e: e,
+        d: d,
         publicKey: '(' + e + ', ' + n + ')',
         privateKey: '(' + d + ', ' + n + ')',
-        cipher: cipherText
       });
     } catch (ex) {
       console.log(ex)
     }
   }
 
+  encrypt() {
+    let e = this.state.e;
+    let d = this.state.d;
+    let n = this.state.q * this.state.p;
+    // bước 5: tìm cipher text
+    let plainTextArr = this.state.input.split('');
+    console.log(plainTextArr)
+    let cipherText = plainTextArr.reduce((accumulator, currentVal) => {
+      let M = currentVal.charCodeAt(0);
+      let Cipher = this.powerModulo(M, e, n);
+      console.log(M, Cipher, String.fromCharCode(Cipher))
+      // accumulator += String.fromCharCode(Cipher);
+      accumulator += '' + Cipher + ' ';
+      return accumulator;
+    }, '');
+    console.log(cipherText);
+    this.setState({
+      cipher: cipherText,
+      plain: ''
+    });
+  }
+
+  decrypt() {
+    let e = this.state.e;
+    let d = this.state.d;
+    let n = this.state.q * this.state.p;
+    // bước 5: tìm cipher text
+    let cipherTextArr = this.state.input.split(' ');
+    console.log(cipherTextArr)
+    let plainText = cipherTextArr.reduce((accumulator, currentVal) => {
+      let C = parseInt(currentVal);
+      let plain = this.powerModulo(C, d, n);
+      console.log('decrypt', this.powerModulo(C, d, n))
+      // accumulator += String.fromCharCode(Cipher);
+      accumulator += '' + String.fromCharCode(plain);
+      return accumulator;
+    }, '');
+    console.log(plainText);
+    this.setState({
+      cipher: '',
+      plain: plainText
+    });
+  }
+
   render() {
     const { navigate } = this.props.navigation;
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>RSA</Text>
-        <Text style={styles.instructions}>
-          Nhập plaintext
-        </Text>
-        <TextInput onChangeText={(text) => { this.setState({ plain: text }) }} style={styles.textInput} ></TextInput>
         <Text style={styles.instructions}>
           Nhập p
         </Text>
@@ -130,9 +163,19 @@ export default class RSAScreen extends React.Component {
         <TextInput onChangeText={(text) => { this.setState({ e: text }) }} style={styles.textInput} ></TextInput>
         <Button onPress={this.generateKey} title="Generate Key"></Button>
         <View style={styles.result}>
-          <Text>Public Key: {this.state.publicKey}</Text>
-          <Text>Private Key: {this.state.privateKey}</Text>
-          <Text>Cipher Text: {this.state.cipher}</Text>
+          <Text style={styles.textResult}>Public Key: {this.state.publicKey}</Text>
+          <Text style={styles.textResult}>Private Key: {this.state.privateKey}</Text>
+        </View>
+        <Text style={styles.instructions}>
+          Nhập plaintext
+        </Text>
+        <TextInput onChangeText={(text) => { this.setState({ input: text }) }} style={styles.textInput} ></TextInput>
+        <View style={styles.buttonGroup}>
+          <Button onPress={this.encrypt} title="Encrypt"></Button>
+          <Button onPress={this.decrypt} title="Decrypt"></Button>
+        </View>
+        <View style={styles.result}>
+          <Text style={styles.textResult}>{this.state.cipher ? 'Cipher' : 'Plain'} Text: {this.state.cipher ? this.state.cipher : this.state.plain}</Text>
         </View>
       </View>
     );
@@ -142,7 +185,6 @@ export default class RSAScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
@@ -166,8 +208,25 @@ const styles = StyleSheet.create({
     marginLeft: 10
   },
   result: {
+    borderRadius: 4,
+    borderWidth: 2.5,
+    borderColor: '#d6d7da',
     marginTop: 10,
-    width: '100%',
-    marginLeft: 10
+    width: '95%',
+    marginLeft: 10,
+    marginRight: 10,
+    paddingRight: 10,
+    paddingLeft: 10,
+    paddingTop: 10,
+    paddingBottom: 10
+  },
+  textResult: {
+    fontSize: 20
+  },
+  buttonGroup: {
+    width: '50%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexDirection: 'row',
   }
 });
