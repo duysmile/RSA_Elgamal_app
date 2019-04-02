@@ -1,4 +1,4 @@
-import { createStackNavigator, createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation';
 import HomeScreen from './HomeScreen';
 import RSAScreen from './RSAScreen';
 import ElgamalScreen from './ElgamalScreen';
